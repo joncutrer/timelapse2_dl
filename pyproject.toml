@@ -1,0 +1,13 @@
+[project]
+name = "timelapse2-dl"
+version = "0.5.1"
+description = "Command line utility to download video files from Axis cameras running timelapse2 ACAP"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+timelapse2-dl = "timelapse2_dl.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
