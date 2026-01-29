@@ -1,6 +1,6 @@
 # Axis Timelapse2 Downloader Tool
 
-A robust Python script for downloading timelapse archives from an Axis IP camera running the excellent [Timelapse2](https://github.com/pandosme/Timelapse2) ACAP application by [Fred Juhlin](http://juhlin.me/).
+A robust Python command-line utility for downloading timelapse archives from an Axis IP camera running the excellent [Timelapse2](https://github.com/pandosme/Timelapse2) ACAP application by [Fred Juhlin](http://juhlin.me/).
 
 I created this application because I was faced with downloading the daily timelapse video files from a 9 month construction project and did not feel like clicking in the browser to download that many files.
 
@@ -15,25 +15,51 @@ I created this application because I was faced with downloading the daily timela
 - **File Size Verification**: Optional size checking to detect incomplete downloads
 - **Resumable**: Skip already downloaded files
 - **Graceful Interruption**: Ctrl+C support with clean shutdown
+- **Zero Dependencies**: Uses only the Python standard library
 
 ## Requirements
 
-- Python 3.9 or higher (developed using python 3.14)
-- No external dependencies (uses only Python standard library)
+- Python 3.10 or higher
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ## Installation
 
-Simply download the `download_timelapse.py` script. No installation required.
+### Using uv (recommended)
+
+```bash
+# Install from the project directory
+uv tool install .
+
+# Or install in a project as a dependency
+uv add timelapse2-dl
+```
+
+### Using pip
+
+```bash
+pip install .
+```
+
+### Development install
+
+```bash
+# Clone the repository
+git clone <repo-url>
+cd timelapse2_dl
+
+# Create venv and install in editable mode
+uv sync
+```
 
 ## Usage
 
 ### Basic Usage
 
 ```bash
-python download_timelapse.py --user USERNAME --pass PASSWORD --host 192.168.0.90
+timelapse2-dl --user USERNAME --pass PASSWORD --host 192.168.0.90
 ```
 
-The script will automatically fetch the list of available timelapse archives from the camera and download them.
+The tool will automatically fetch the list of available timelapse archives from the camera and download them.
 
 ### Command-Line Arguments
 
@@ -55,12 +81,12 @@ The script will automatically fetch the list of available timelapse archives fro
 
 #### Download with default settings (from default IP)
 ```bash
-python download_timelapse.py --user root --pass 'mypassword'
+timelapse2-dl --user root --pass 'mypassword'
 ```
 
 #### Download from specific camera IP
 ```bash
-python download_timelapse.py \
+timelapse2-dl \
     --user root \
     --pass 'mypassword' \
     --host 192.168.1.100
@@ -68,7 +94,7 @@ python download_timelapse.py \
 
 #### Download to specific directory with rate limit
 ```bash
-python download_timelapse.py \
+timelapse2-dl \
     --user root \
     --pass 'mypassword' \
     --host 192.168.0.90 \
@@ -78,7 +104,7 @@ python download_timelapse.py \
 
 #### Enable size checking and increase retries
 ```bash
-python download_timelapse.py \
+timelapse2-dl \
     --user root \
     --pass 'mypassword' \
     --host 192.168.0.90 \
@@ -89,7 +115,7 @@ python download_timelapse.py \
 
 #### Disable progress bar (for logging/automation)
 ```bash
-python download_timelapse.py \
+timelapse2-dl \
     --user root \
     --pass 'mypassword' \
     --host 192.168.0.90 \
@@ -98,7 +124,7 @@ python download_timelapse.py \
 
 #### Force re-download all files
 ```bash
-python download_timelapse.py \
+timelapse2-dl \
     --user root \
     --pass 'mypassword' \
     --host 192.168.0.90 \
@@ -107,9 +133,9 @@ python download_timelapse.py \
 
 ## How It Works
 
-1. **Archive Discovery**: The script connects to the camera's API endpoint at `http://{host}/local/timelapseme/archives` and retrieves a JSON list of available timelapse archives.
+1. **Archive Discovery**: The tool connects to the camera's API endpoint at `http://{host}/local/timelapseme/archives` and retrieves a JSON list of available timelapse archives.
 
-2. **URL Construction**: For each archive in the JSON response, the script constructs a download URL using the archive's ID and filename:
+2. **URL Construction**: For each archive in the JSON response, the tool constructs a download URL using the archive's ID and filename:
    ```
    http://{host}/local/timelapseme/archives?export={id}&file={filename}
    ```
@@ -118,7 +144,7 @@ python download_timelapse.py \
 
 ## Output Filename Extraction
 
-The script intelligently extracts filenames from URLs:
+The tool intelligently extracts filenames from URLs:
 1. Uses the `file` query parameter if present (e.g., `?file=archive.zip` → `archive.zip`)
 2. Falls back to the last path segment (e.g., `/path/to/file.zip` → `file.zip`)
 3. Uses `download.bin` as a last resort
@@ -134,10 +160,10 @@ Controls download speed to avoid overwhelming the network or server:
 
 ```bash
 # Limit to 50 Mbps
-python download_timelapse.py --user root --pass 'pwd' --input urls.txt --rate-limit 50
+timelapse2-dl --user root --pass 'pwd' --host 192.168.0.90 --rate-limit 50
 
 # No rate limit (set very high value)
-python download_timelapse.py --user root --pass 'pwd' --input urls.txt --rate-limit 10000
+timelapse2-dl --user root --pass 'pwd' --host 192.168.0.90 --rate-limit 10000
 ```
 
 ### Automatic Retries
@@ -196,7 +222,7 @@ SKIP  file3.zip (already exists, cannot verify size)
 
 ## Error Handling
 
-The script provides detailed error messages:
+The tool provides detailed error messages:
 - **SKIP**: File already exists (skipped)
 - **INFO**: Informational message (e.g., size mismatch)
 - **FAIL**: Download failed after all retries
@@ -222,7 +248,7 @@ Done. downloaded=15 skipped=3 failed=2
 
 7. **Organize with output directories**: Use `--outdir` to keep downloads organized by date or camera.
 
-8. **Multiple cameras**: Run multiple instances of the script with different `--host` and `--outdir` values to download from multiple cameras simultaneously.
+8. **Multiple cameras**: Run multiple instances with different `--host` and `--outdir` values to download from multiple cameras simultaneously.
 
 ## Troubleshooting
 
@@ -253,7 +279,7 @@ Done. downloaded=15 skipped=3 failed=2
 
 ## License
 
-This script is provided as-is for downloading timelapse archives from HTTP servers.
+This tool is provided as-is for downloading timelapse archives from Axis cameras running the Timelapse2 ACAP.
 
 ## Contributing
 
